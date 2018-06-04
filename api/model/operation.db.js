@@ -1,7 +1,6 @@
 var XLSX = require('xlsx');
 const fs = require('fs')
 var path=require('path')
-//var Promise=require('bluebird')
 const mysql=require('../db/mysqldb')
 
 
@@ -146,7 +145,85 @@ mysql.query(insertstatement,[insertdata],(err,result)=>{
                 res.status(200).json(result);
             }
         })
+    },
+    UpdateTcsToDB : function(req,res){
+        let payload=req.body;
+
+        payload.forEach(el=>{
+            console.log(el)
+            console.log()
+            let identiy='';
+            let updateFields=''
+            let updatequery=''
+            for(let key in el){
+               if(key =='TESTCASE'){
+                   identiy='TESTCASE=\''+el[key]+'\''
+               }else{
+                updateFields+=key+'=\''+el[key]+'\',';
+               }
+            }
+            updatequery='Update tcs_master set '+updateFields.slice(0,updateFields.length-1)+' where '+identiy;
+            console.log(updatequery)
+            mysql.query(updatequery,(err,result,fields)=>{
+                if(err){
+                    res.status(500).end();
+                }
+                console.log(result)
+            })
+        })
+      
+    },
+    deleteTcsToDB : function(req,res){
+        let tcs_id = req.params.tcsno;
+        var data = '';
+        for (var i = 0; i < tcs_id.split(',').length; i++) {
+            data = data + "'" + tcs_id.split(',')[i] + "',"
+        }
+        console.log(data.slice(0, data.length - 1))
+        let query = '';
+        if (tcs_id) {
+            query = 'Delete FROM tcs_master WHERE TESTCASE IN (' + data.slice(0, data.length - 1) + ')';
+        }
+
+        let querysel = '';
+        if (tcs_id) {
+            querysel = 'SELECT TESTCASE FROM tcs_master WHERE TESTCASE IN (' + data.slice(0, data.length - 1) + ')';
+        } 
+        let tcslistdb=[],
+        tcslistNotIndb=[];
+      mysql.query(querysel,(err,result,fields)=>{
+          if(err){
+            res.status(500).end();
+          }
+
+          for(let i=0;i<result.length;i++){
+            tcslistdb.push(result[i]['TESTCASE'])
+        }
+        tcs_id.split(',').forEach(el=>{
+            if(tcslistdb.indexOf(el)==-1){
+                tcslistNotIndb.push(el)
+            }
+        })
+
+        console.log(query)
+        mysql.query(query, function(err, result) {
+            if (err) {
+                res.status(500).end();
+            } else {
+                response={
+                    'Tcs_deleted':result.affectedRows,
+                    'Tcs_listdeleted':tcslistdb,
+                    'Tcs_previouslyDeleted':tcslistNotIndb
+                }
+                res.status(200).json(response);
+            }
+        })
+
+
+      })
+       
     }
+   
 }
 
 module.exports=dbOperation;

@@ -7,7 +7,7 @@ var operationdb=require('../api/model/operation.db')
 var router = express.Router();
 
 /* GET home page. */
-/* GET home page. */
+
 
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'File Upload', message: '' });
@@ -15,8 +15,10 @@ router.get('/', function(req, res, next) {
 
 // post call after browsing the file location
 
-router.post('/', [upload.upload,admin.insertTCStoDB,operationdb.uploadTcsToDB]);
-router.get('/listtcs',[admin.fetchTCSfromDB,operationdb.fetchTcsToDB ]);
-router.get('/listtcs/:tcsno',[admin.fetchTCSfromDB,operationdb.fetchSpecificTcsToDB ]);
+router.post('/v1/admin/upload', [upload.upload,admin.insertTCStoDB,operationdb.uploadTcsToDB]);
+router.get('/v1/admin/listtcs',[admin.fetchTCSfromDB,operationdb.fetchTcsToDB ]);
+router.get('/v1/admin/listtcs/:tcsno',[admin.fetchTCSfromDB,operationdb.fetchSpecificTcsToDB ]);
+router.post('/v1/admin/updatetcs',[admin.updateTCSfromDB,operationdb.UpdateTcsToDB ]);
+router.delete('/v1/admin/del/:tcsno',[admin.deleteTCSfromDB,operationdb.deleteTcsToDB ]);
 
 module.exports = router;
